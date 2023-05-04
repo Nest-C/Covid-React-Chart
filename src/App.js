@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import  { Bar } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import './App.css';
-import 'chart.js/auto';
+import { Chart as ChartJS, BarElement, Tooltip, Legend, CategoryScale, LinearScale } from 'chart.js'
+
+ChartJS.register(BarElement, Tooltip, Legend, CategoryScale, LinearScale);
 
 const CovidData = () => {
   const [chartData, setChartData] = useState(null);
@@ -22,19 +24,23 @@ const CovidData = () => {
       const sortedData = inintialData(data);
       getChartData(sortedData);
       const chartData = getChartData(sortedData);
-        
+
       setLoading(false)
       setChartData(chartData);
       setChartOptions(getChartOptions());
     };
     fetchData();
   }, []);
-  
+
   const inintialData = (data) => {
     let datas = [];
 
     datas = data.map(data => {
-      let newData = {country: data.province ? data.country + ' ' + data.province : data.country, cases: data.timeline.cases};
+      let newData = {
+        country: data.province ? data.country + ' ' + data.province : data.country, 
+        cases: data.timeline.cases, 
+        backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`
+      };
       for (const key in newData.cases) {
         if (key.startsWith("3/")) {
           delete newData.cases[key];
@@ -46,23 +52,27 @@ const CovidData = () => {
     return datas
   };
 
- useEffect(() => {
-  setTimeout(() => {
-    setDateLoop(dateLoop === 27 ? 0 : dateLoop + 1 )
-    const chartData = getChartData(inintialDatas);
-    setChartData(chartData);
-  }, 500);
- }, [dateLoop, inintialDatas])
+  useEffect(() => {
+    setTimeout(() => {
+      setDateLoop(dateLoop === 27 ? 0 : dateLoop + 1)
+      const chartData = getChartData(inintialDatas);
+      setChartData(chartData);
+    }, 500);
+  }, [dateLoop, inintialDatas])
 
 
   const getChartData = (data) => {
-    const label = data.map(d => ({label: d.country, data: Object.values(d.cases)[dateLoop]})).sort((a, b) => b.data - a.data).slice(0,17)
+    const labels = data.map((d) => ({
+      label: d.country,
+      data: Object.values(d.cases)[dateLoop],
+      backgroundColor: d.backgroundColor,
+    })).sort((a, b) => b.data - a.data).slice(0, 10);
+
     const chartData = {
-      labels: label.map(d => d.label),
-      datasets:[{
-        label: '-',
-        data: label.map(a => a.data),
-        backgroundColor: ['#060047', '#B3005E', '#E90064']
+      labels: labels.map(d => d.label),
+      datasets: [{
+        data: labels.map(a => a.data),
+        backgroundColor: labels.map((d) => d.backgroundColor),
       }]
     };
     return chartData;
@@ -77,18 +87,57 @@ const CovidData = () => {
         },
       },
       responsive: true,
-      aspectRatio: 4,
+      aspectRatio: 3,
       plugins: {
         legend: {
           position: "none",
         },
-        customCanvasBackgroundColor: {
-          color: 'write',
+        tooltip: {
+          mode: 'index',
+          enabled: true,
+          external: (context) => {
+            const label = context.chart.data.labels[context.dataIndex];
+            const value = context.chart.data.datasets[0].data[context.dataIndex];
+            console.log(context.chart.data.labels)
+            console.log(context.chart.data.datasets)
+            return `${label}: ${value}`;
+          },
+        },
+        labels: {
+          render: ({ label, value }) => {
+            return `${label}: ${value}`;
+          },
+          font: {
+            size: 12,
+          },
+          color: "black",
+          position: "inside",
+          align: "center",
+          anchor: "end",
+          offset: 0,
+          padding: 0,
+        },
+      },
+      scales: {
+        x: {
+          display: true,
+          min: 0,
+          max: 105000000,
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          display: true,
+          grid: {
+            display: false,
+          },
         },
       },
     };
     return chartOptions;
   };
+
 
   return (
     <div>
@@ -101,12 +150,12 @@ const CovidData = () => {
               <h1>
                 Covid Global Cases by SGN
               </h1>
-              <p>Date : {dateLoop+1}/02/2023</p>
+              <p>Date : {dateLoop + 1}/02/2023</p>
             </div>
-           </div>
-           <div className="containerChart">
+          </div>
+          <div className="containerChart">
             <Bar data={chartData} options={chartOptions} ref={chartRef} />
-           </div>
+          </div>
         </div>
       )}
     </div>
