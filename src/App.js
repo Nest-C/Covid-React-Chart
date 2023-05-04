@@ -67,7 +67,7 @@ const CovidData = () => {
       label: d.country,
       data: Object.values(d.cases)[dateLoop],
       backgroundColor: d.backgroundColor,
-    })).sort((a, b) => b.data - a.data).slice(0, 10);
+    })).sort((a, b) => b.data - a.data).slice(0, 20);
 
     const chartData = {
       labels: labels.map(d => d.label),
