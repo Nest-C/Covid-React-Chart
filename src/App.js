@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, BarElement, Tooltip, Legend, CategoryScale, LinearScale, Colors } from 'chart.js'
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import './App.css';
-import { Chart as ChartJS, BarElement, Tooltip, Legend, CategoryScale, LinearScale } from 'chart.js'
 
 ChartJS.register(BarElement, Tooltip, Legend, CategoryScale, LinearScale);
 
@@ -94,33 +95,23 @@ const CovidData = () => {
         },
         tooltip: {
           mode: 'index',
-          enabled: true,
-          external: (context) => {
-            const label = context.chart.data.labels[context.dataIndex];
-            const value = context.chart.data.datasets[0].data[context.dataIndex];
-            console.log(context.chart.data.labels)
-            console.log(context.chart.data.datasets)
-            return `${label}: ${value}`;
-          },
         },
-        labels: {
-          render: ({ label, value }) => {
-            return `${label}: ${value}`;
+        datalabels: {
+          anchor: 'start',
+          align: 'end',
+          formatter : (value, context) => {
+            return context.chart.data.labels[context.dataIndex] + ": " + new Intl.NumberFormat().format(value) 
           },
           font: {
-            size: 12,
+            weight: 'blod',
+            size: 24,
           },
-          color: "black",
-          position: "inside",
-          align: "center",
-          anchor: "end",
-          offset: 0,
-          padding: 0,
+          color: 'rgb(0, 0, 0)',
         },
       },
       scales: {
         x: {
-          display: true,
+          display: false,
           min: 0,
           max: 105000000,
           grid: {
@@ -128,7 +119,7 @@ const CovidData = () => {
           },
         },
         y: {
-          display: true,
+          display: false,
           grid: {
             display: false,
           },
@@ -154,7 +145,7 @@ const CovidData = () => {
             </div>
           </div>
           <div className="containerChart">
-            <Bar data={chartData} options={chartOptions} ref={chartRef} />
+            <Bar data={chartData} plugins={[ChartDataLabels]}  options={chartOptions} ref={chartRef} />
           </div>
         </div>
       )}
